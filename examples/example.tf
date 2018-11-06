@@ -1,0 +1,18 @@
+variable "env" {
+  default = "core-us-dev"
+}
+
+locals {
+  tags = {
+    Creator     = "Terraform"
+    Environment = "${var.env}"
+    Owner       = "my-team@my-company.com"
+  }
+}
+
+module "ecs_linux" {
+  source = "github.com/jjno91/terraform-aws-ecs-linux?ref=master"
+  env    = "${var.env}"
+  vpc_id = "my_vpc"
+  tags   = "${local.tags}"
+}
