@@ -21,7 +21,6 @@ data "aws_ami" "this" {
 }
 
 data "template_file" "userdata" {
-  count    = "${var.efs_mount ? 0 : 1}"
   template = "${file("${path.module}/templates/userdata.sh.tpl")}"
 
   vars = {
@@ -30,7 +29,6 @@ data "template_file" "userdata" {
 }
 
 data "template_file" "efs_userdata" {
-  count    = "${var.efs_mount ? 1 : 0}"
   template = "${file("${path.module}/templates/userdata-efs.sh.tpl")}"
 
   vars = {
