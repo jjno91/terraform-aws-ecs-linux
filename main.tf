@@ -20,18 +20,43 @@ data "aws_ami" "this" {
   }
 }
 
-data "aws_subnet_ids" "this" {
-  vpc_id = "${var.vpc_id}"
-  tags   = "${var.subnet_tags}"
+data "template_file" "userdata" {
+  count    = "${var.efs_mount ? 0 : 1}"
+  template = "${file("${path.module}/templates/userdata.sh.tpl")}"
+
+  vars = {
+    CLUSTER_ID = "${aws_ecs_cluster.this.id}"
+  }
 }
 
-locals {
-  userdata = <<EOF
-#!/bin/bash -xe
+data "template_file" "efs_userdata" {
+  count    = "${var.efs_mount ? 1 : 0}"
+  template = "${file("${path.module}/templates/userdata-efs.sh.tpl")}"
 
-echo "ECS_CLUSTER=${aws_ecs_cluster.this.id}" >> /etc/ecs/ecs.config
-start ecs
-EOF
+  vars = {
+    CLUSTER_ID     = "${aws_ecs_cluster.this.id}"
+    EFS_ID         = "${aws_efs_file_system.this.id}"
+    EFS_MOUNT_PATH = "${var.efs_mount_path}"
+  }
+}
+
+resource "aws_efs_file_system" "this" {
+  count          = "${var.efs_mount ? 1 : 0}"
+  creation_token = "${var.env}-ecs-linux"
+  encrypted      = true
+  tags           = "${merge(map("Name", "${var.env}-ecs-linux"), var.tags)}"
+
+  lifecycle {
+    # require manual deletion due to lack of backup plan
+    prevent_destroy = true
+  }
+}
+
+resource "aws_efs_mount_target" "this" {
+  count           = "${var.efs_mount ? length(var.subnet_ids) : 0}"
+  file_system_id  = "${aws_efs_file_system.this.id}"
+  subnet_id       = "${element(var.subnet_ids, count.index)}"
+  security_groups = ["${aws_security_group.this.id}"]
 }
 
 resource "aws_launch_template" "this" {
@@ -39,7 +64,7 @@ resource "aws_launch_template" "this" {
   image_id               = "${data.aws_ami.this.image_id}"
   instance_type          = "${var.instance_type}"
   ebs_optimized          = true
-  user_data              = "${base64encode(local.userdata)}"
+  user_data              = "${var.efs_mount ? base64encode(data.template_file.efs_userdata.rendered) : base64encode(data.template_file.userdata.rendered)}"
   vpc_security_group_ids = ["${aws_security_group.this.id}"]
   tags                   = "${merge(map("Name", "${var.env}-ecs-linux"), var.tags)}"
 
@@ -74,7 +99,7 @@ resource "aws_autoscaling_group" "this" {
   name_prefix         = "${var.env}-ecs-linux-"
   min_size            = "${var.min_size}"
   max_size            = "${var.max_size}"
-  vpc_zone_identifier = ["${data.aws_subnet_ids.this.ids}"]
+  vpc_zone_identifier = ["${var.subnet_ids}"]
 
   launch_template = {
     id      = "${aws_launch_template.this.id}"
@@ -192,7 +217,7 @@ resource "aws_security_group" "this" {
 }
 
 resource "aws_security_group_rule" "ingress" {
-  description              = "ingress self"
+  description              = "self"
   type                     = "ingress"
   from_port                = 0
   to_port                  = 0
@@ -202,7 +227,7 @@ resource "aws_security_group_rule" "ingress" {
 }
 
 resource "aws_security_group_rule" "egress" {
-  description       = "egress all"
+  description       = "all"
   type              = "egress"
   from_port         = 0
   to_port           = 0
