@@ -8,7 +8,8 @@ mkdir -p "${EFS_MOUNT_PATH}"
 yum install -y amazon-efs-utils
 echo "${EFS_ID}:/ ${EFS_MOUNT_PATH} efs tls,_netdev" >> /etc/fstab
 mount -t efs -o tls "${EFS_ID}:/" "${EFS_MOUNT_PATH}"
-
+#create an empty htaccess file 
+sudo touch /mnt/efs/wordpress/.htaccess
 #increase wp upload limits
 sudo cat > /mnt/efs/wordpress/.htaccess << EOF
 php_value upload_max_filesize 64M
