@@ -17,4 +17,6 @@ php_value post_max_size 128M
 php_value memory_limit 256M
 php_value max_execution_time 300
 php_value max_input_time 300
+#Setting value of output buffering to default in prod 
+php_value output_buffering 4096
 EOF
