@@ -8,22 +8,29 @@ variable "tags" {
   default     = {}
 }
 
-variable "subnet_tags" {
-  description = "(optional) Tags used to identify your target subnets with selected VPC"
-
-  default = {
-    Type = "Private"
-  }
-}
-
 variable "vpc_id" {
   description = "(required) ID of the VPC that your ECS cluster will be deployed to"
   default     = ""
 }
 
+variable "subnet_ids" {
+  description = "(required) IDs of the subnets to which the ECS nodes will be deployed"
+  default     = []
+}
+
 variable "instance_type" {
   description = "(optional) EC2 instance type for the ASG of your cluster"
   default     = "m5.large"
+}
+
+variable "efs_mount" {
+  description = "(optional) Add an EFS mount to all ECS cluster nodes"
+  default     = "false"
+}
+
+variable "efs_mount_path" {
+  description = "(optional) File system path for optional EFS mount"
+  default     = "/mnt/efs"
 }
 
 variable "ami_name_filter" {
