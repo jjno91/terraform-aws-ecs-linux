@@ -38,6 +38,16 @@ variable "efs_mount_path" {
   default     = "/mnt/efs"
 }
 
+variable "efs_backup_cold_storage_after" {
+  description = "(optional) https://www.terraform.io/docs/providers/aws/r/backup_plan.html#cold_storage_after"
+  default     = "30"
+}
+
+variable "efs_backup_delete_after" {
+  description = "(optional) https://www.terraform.io/docs/providers/aws/r/backup_plan.html#delete_after"
+  default     = "120"
+}
+
 variable "ami_name_filter" {
   description = "(optional) Used to lookup the AMI that will be used in the cluster launch template"
   default     = "*h-amazon-ecs-optimized"

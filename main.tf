@@ -59,6 +59,67 @@ resource "aws_efs_mount_target" "this" {
   security_groups = ["${aws_security_group.this.id}"]
 }
 
+resource "aws_backup_vault" "this" {
+  count = "${var.efs_mount ? 1 : 0}"
+  name  = "${var.env}-ecs-linux"
+  tags  = "${merge(map("Name", "${var.env}-ecs-linux"), var.tags)}"
+}
+
+resource "aws_backup_plan" "this" {
+  count = "${var.efs_mount ? 1 : 0}"
+  name  = "${var.env}-ecs-linux"
+  tags  = "${merge(map("Name", "${var.env}-ecs-linux"), var.tags)}"
+
+  rule {
+    rule_name           = "tf_example_backup_rule"
+    target_vault_name   = "${aws_backup_vault.this.name}"
+    schedule            = "cron(0 0 * * *)"
+    recovery_point_tags = "${merge(map("Name", "${var.env}-ecs-linux"), var.tags)}"
+
+    lifecycle {
+      cold_storage_after = "${var.efs_backup_cold_storage_after}"
+      delete_after       = "${var.efs_backup_delete_after}"
+    }
+  }
+}
+
+resource "aws_backup_selection" "this" {
+  count        = "${var.efs_mount ? 1 : 0}"
+  name         = "${var.env}-ecs-linux"
+  iam_role_arn = "${aws_iam_role.backup.arn}"
+  plan_id      = "${aws_backup_plan.this.id}"
+
+  resources = [
+    "${aws_efs_file_system.this.arn}",
+  ]
+}
+
+resource "aws_iam_role" "backup" {
+  count = "${var.efs_mount ? 1 : 0}"
+  name  = "${var.env}-ecs-linux"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": ["sts:AssumeRole"],
+      "Effect": "allow",
+      "Principal": {
+        "Service": ["backup.amazonaws.com"]
+      }
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy_attachment" "backup" {
+  count      = "${var.efs_mount ? 1 : 0}"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup"
+  role       = "${aws_iam_role.backup.name}"
+}
+
 resource "aws_launch_template" "this" {
   name_prefix   = "${var.env}-ecs-linux-"
   image_id      = "${data.aws_ami.this.image_id}"
@@ -191,19 +252,19 @@ data "aws_iam_policy_document" "this" {
   }
 }
 
-resource "aws_iam_role" "this" {
+resource "aws_iam_role" "ec2" {
   name_prefix        = "${var.env}-ecs-linux-"
   assume_role_policy = "${data.aws_iam_policy_document.this.json}"
 }
 
-resource "aws_iam_role_policy_attachment" "this" {
+resource "aws_iam_role_policy_attachment" "ec2" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
-  role       = "${aws_iam_role.this.name}"
+  role       = "${aws_iam_role.ec2.name}"
 }
 
 resource "aws_iam_instance_profile" "this" {
   name_prefix = "${var.env}-ecs-linux-"
-  role        = "${aws_iam_role.this.name}"
+  role        = "${aws_iam_role.ec2.name}"
 }
 
 #################################################
