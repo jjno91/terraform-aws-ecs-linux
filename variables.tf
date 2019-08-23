@@ -48,6 +48,11 @@ variable "efs_backup_delete_after" {
   default     = "120"
 }
 
+variable "efs_backup_schedule" {
+  description = "(optional) https://www.terraform.io/docs/providers/aws/r/backup_plan.html#schedule"
+  default     = "cron(0 5 ? * * *)"
+}
+
 variable "ami_name_filter" {
   description = "(optional) Used to lookup the AMI that will be used in the cluster launch template"
   default     = "*h-amazon-ecs-optimized"

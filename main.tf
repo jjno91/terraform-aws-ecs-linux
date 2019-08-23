@@ -73,7 +73,7 @@ resource "aws_backup_plan" "this" {
   rule {
     rule_name           = "tf_example_backup_rule"
     target_vault_name   = "${aws_backup_vault.this.name}"
-    schedule            = "cron(0 0 * * *)"
+    schedule            = "cron(0 5 ? * * *)"
     recovery_point_tags = "${merge(map("Name", "${var.env}-ecs-linux"), var.tags)}"
 
     lifecycle {
