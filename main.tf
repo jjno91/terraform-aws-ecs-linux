@@ -43,7 +43,7 @@ resource "aws_efs_file_system" "this" {
   creation_token                  = "${var.env}-ecs-linux"
   encrypted                       = true
   throughput_mode                 = "provisioned"
-  provisioned_throughput_in_mibps = "${var.efs_provisioned_throughput_in_mibps}""
+  provisioned_throughput_in_mibps = "${var.efs_provisioned_throughput_in_mibps}"
   tags                            = "${merge(map("Name", "${var.env}-ecs-linux"), var.tags)}"
 
   lifecycle {
