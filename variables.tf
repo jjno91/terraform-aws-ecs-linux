@@ -28,6 +28,11 @@ variable "efs_mount" {
   default     = "false"
 }
 
+variable "efs_provisioned_throughput_in_mibps" {
+  description = "(optional) https://www.terraform.io/docs/providers/aws/r/efs_file_system.html#provisioned_throughput_in_mibps"
+  default     = "512"
+}
+
 variable "efs_mount_path" {
   description = "(optional) File system path for optional EFS mount"
   default     = "/mnt/efs"

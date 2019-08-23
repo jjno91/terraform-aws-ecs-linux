@@ -39,12 +39,12 @@ data "template_file" "efs_userdata" {
 }
 
 resource "aws_efs_file_system" "this" {
-  count          = "${var.efs_mount ? 1 : 0}"
-  creation_token = "${var.env}-ecs-linux"
-  encrypted      = true
-  throughput_mode = "provisioned"
-  provisioned_throughput_in_mibps = 10
-  tags           = "${merge(map("Name", "${var.env}-ecs-linux"), var.tags)}"
+  count                           = "${var.efs_mount ? 1 : 0}"
+  creation_token                  = "${var.env}-ecs-linux"
+  encrypted                       = true
+  throughput_mode                 = "provisioned"
+  provisioned_throughput_in_mibps = "${var.efs_provisioned_throughput_in_mibps}""
+  tags                            = "${merge(map("Name", "${var.env}-ecs-linux"), var.tags)}"
 
   lifecycle {
     # require manual deletion due to lack of backup plan
@@ -60,12 +60,13 @@ resource "aws_efs_mount_target" "this" {
 }
 
 resource "aws_launch_template" "this" {
-  name_prefix            = "${var.env}-ecs-linux-"
-  image_id               = "${data.aws_ami.this.image_id}"
-  instance_type          = "${var.instance_type}"
-  ebs_optimized          = true
+  name_prefix   = "${var.env}-ecs-linux-"
+  image_id      = "${data.aws_ami.this.image_id}"
+  instance_type = "${var.instance_type}"
+  ebs_optimized = true
+
   #Enable key name for debug purposes
-  key_name               = "ecs-key-temp"
+  key_name = "ecs-key-temp"
 
   user_data              = "${var.efs_mount ? base64encode(data.template_file.efs_userdata.rendered) : base64encode(data.template_file.userdata.rendered)}"
   vpc_security_group_ids = ["${aws_security_group.this.id}"]
