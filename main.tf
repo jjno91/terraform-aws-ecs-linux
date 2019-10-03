@@ -127,7 +127,7 @@ resource "aws_launch_template" "this" {
   ebs_optimized = true
 
   #Enable key name for debug purposes
-  key_name = "ecs-key-temp"
+  #key_name = "key_name_for debugging"
 
   user_data              = "${var.efs_mount ? base64encode(data.template_file.efs_userdata.rendered) : base64encode(data.template_file.userdata.rendered)}"
   vpc_security_group_ids = ["${aws_security_group.this.id}"]
