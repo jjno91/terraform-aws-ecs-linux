@@ -42,7 +42,7 @@ resource "aws_efs_file_system" "this" {
   count                           = "${var.efs_mount ? 1 : 0}"
   creation_token                  = "${var.env}-ecs-linux"
   encrypted                       = true
-  throughput_mode                 = "provisioned"
+  throughput_mode                 = "${var.efs_throughput_mode}"
   provisioned_throughput_in_mibps = "${var.efs_provisioned_throughput_in_mibps}"
   tags                            = "${merge(map("Name", "${var.env}-ecs-linux"), var.tags)}"
 

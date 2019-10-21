@@ -28,9 +28,14 @@ variable "efs_mount" {
   default     = "false"
 }
 
+variable "efs_throughput_mode" {
+  description = "(optional) https://www.terraform.io/docs/providers/aws/r/efs_file_system.html#throughput_mode"
+  default     = "bursting"
+}
+
 variable "efs_provisioned_throughput_in_mibps" {
   description = "(optional) https://www.terraform.io/docs/providers/aws/r/efs_file_system.html#provisioned_throughput_in_mibps"
-  default     = "512"
+  default     = "5"
 }
 
 variable "efs_mount_path" {
