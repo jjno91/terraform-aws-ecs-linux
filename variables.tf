@@ -8,22 +8,54 @@ variable "tags" {
   default     = {}
 }
 
-variable "subnet_tags" {
-  description = "(optional) Tags used to identify your target subnets with selected VPC"
-
-  default = {
-    Type = "Private"
-  }
-}
-
 variable "vpc_id" {
   description = "(required) ID of the VPC that your ECS cluster will be deployed to"
   default     = ""
 }
 
+variable "subnet_ids" {
+  description = "(required) IDs of the subnets to which the ECS nodes will be deployed"
+  default     = []
+}
+
 variable "instance_type" {
   description = "(optional) EC2 instance type for the ASG of your cluster"
   default     = "m5.large"
+}
+
+variable "efs_mount" {
+  description = "(optional) Add an EFS mount to all ECS cluster nodes"
+  default     = "false"
+}
+
+variable "efs_throughput_mode" {
+  description = "(optional) https://www.terraform.io/docs/providers/aws/r/efs_file_system.html#throughput_mode"
+  default     = "bursting"
+}
+
+variable "efs_provisioned_throughput_in_mibps" {
+  description = "(optional) https://www.terraform.io/docs/providers/aws/r/efs_file_system.html#provisioned_throughput_in_mibps"
+  default     = "0"
+}
+
+variable "efs_mount_path" {
+  description = "(optional) File system path for optional EFS mount"
+  default     = "/mnt/efs"
+}
+
+variable "efs_backup_cold_storage_after" {
+  description = "(optional) https://www.terraform.io/docs/providers/aws/r/backup_plan.html#cold_storage_after"
+  default     = "30"
+}
+
+variable "efs_backup_delete_after" {
+  description = "(optional) https://www.terraform.io/docs/providers/aws/r/backup_plan.html#delete_after"
+  default     = "120"
+}
+
+variable "efs_backup_schedule" {
+  description = "(optional) https://www.terraform.io/docs/providers/aws/r/backup_plan.html#schedule"
+  default     = "cron(0 5 ? * * *)"
 }
 
 variable "ami_name_filter" {
